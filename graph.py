@@ -204,15 +204,15 @@ helper_builder.add_edge("answer_generator", END)
 # compile the graph
 helper_graph = helper_builder.compile()
 
-# copy this for chatbot
-node_to_stream = 'answer_generator'
-other_node_to_stream = 'guidelines_generator'
-model_config = {"configurable": {"thread_id": "1"}}
+async def graph_streamer(path: str):
+    node_to_stream = 'answer_generator'
+    other_node_to_stream = 'guidelines_generator'
+    model_config = {"configurable": {"thread_id": "1"}}
 
-async for event in helper_graph.astream_events({"image_path": "/content/IBD Image.jpg"}, model_config, version="v2"):
-    # Get chat model tokens from a particular node
-    if event["event"] == "on_chat_model_stream":
-        if event['metadata'].get('langgraph_node','') == node_to_stream or  event['metadata'].get('langgraph_node','') == other_node_to_stream:
-            data = event["data"]
-            print(data["chunk"].content, end="|")
-        print(data["chunk"]["answer"].content, sep = "|")
+    async for event in helper_graph.astream_events({"image_path": path}, model_config, version="v2"):
+        # Get chat model tokens from a particular node
+
+        if event["event"] == "on_chat_model_stream":
+            if event['metadata'].get('langgraph_node','') == node_to_stream or  event['metadata'].get('langgraph_node','') == other_node_to_stream:
+                data = event["data"]
+                yield data["chunk"].content
